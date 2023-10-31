@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  node-1:
+    image: openraft-memstore
+    ports:
+      - 21001:21000
+    environment:
+      - NODE_ID=1
+      - RUST_LOG=info
+      - SNAPSHOT_TARGET=${SNAPSHOT_TARGET:-1000}
+    volumes:
+      - node-logs:/usr/src/raft/logs
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+  node-2:
+    image: openraft-memstore
+    ports:
+      - 21002:21000
+    environment:
+      - NODE_ID=2
+      - RUST_LOG=info
+      - SNAPSHOT_TARGET=${SNAPSHOT_TARGET:-1000}
+    volumes:
+      - node-logs:/usr/src/raft/logs
+
+  node-3:
+    image: openraft-memstore
+    ports:
+      - 21003:21000
+    environment:
+      - NODE_ID=3
+      - RUST_LOG=info
+      - SNAPSHOT_TARGET=${SNAPSHOT_TARGET:-1000}
+    volumes:
+      - node-logs:/usr/src/raft/logs
+
+volumes:
+  node-logs:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "./node-logs"
