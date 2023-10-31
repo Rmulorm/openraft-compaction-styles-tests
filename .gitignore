@@ -1,0 +1,16 @@
+
+# Directory Ignores ##########################################################
+guide/book
+target
+vendor
+.idea
+**/node-logs
+**/tests
+
+# File Ignores ###############################################################
+**/*.rs.bk
+Cargo.lock
+.DS_Store
+.vscode
+
+**/jmeter.log
