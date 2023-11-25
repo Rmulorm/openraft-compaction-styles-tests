@@ -12,5 +12,6 @@ vendor
 Cargo.lock
 .DS_Store
 .vscode
+test-logs.txt
 
 **/jmeter.log
