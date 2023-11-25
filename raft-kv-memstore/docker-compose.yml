@@ -10,7 +10,7 @@ services:
       - RUST_LOG=info
       - SNAPSHOT_TARGET=${SNAPSHOT_TARGET:-1000}
     volumes:
-      - node-logs:/usr/src/raft/logs
+      - ~/study/tcc/raft/node-logs:/usr/src/raft/logs
     build:
       context: .
       dockerfile: Dockerfile
@@ -24,7 +24,7 @@ services:
       - RUST_LOG=info
       - SNAPSHOT_TARGET=${SNAPSHOT_TARGET:-1000}
     volumes:
-      - node-logs:/usr/src/raft/logs
+      - ~/study/tcc/raft/node-logs:/usr/src/raft/logs
 
   node-3:
     image: openraft-memstore
@@ -35,12 +35,4 @@ services:
       - RUST_LOG=info
       - SNAPSHOT_TARGET=${SNAPSHOT_TARGET:-1000}
     volumes:
-      - node-logs:/usr/src/raft/logs
-
-volumes:
-  node-logs:
-    driver: local
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: "./node-logs"
+      - ~/study/tcc/raft/node-logs:/usr/src/raft/logs
