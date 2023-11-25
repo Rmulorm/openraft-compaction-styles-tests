@@ -19,25 +19,54 @@ rpc() {
             jq
         else
             cat
-        fi
+        fi  
     }
 
     echo
 }
 
-export RUST_LOG=trace
-export SNAPSHOT_TARGET=$1
+while getopts "p:t:n:" option; do
+    case "$option" in
+        p) PROJECT=${OPTARG};;
+        t) TARGET=${OPTARG};;
+        n) CLIENTS_NUM=${OPTARG};;
+    esac
+done
 
+if [[ ${PROJECT} = 'rocksdb' ]]; then
+    case ${TARGET} in
+        1)
+            TARGET_NAME="Fifo"
+            ;;
+        2)
+            TARGET_NAME="Level"
+            ;;
+        3)
+            TARGET_NAME="Universal"
+            ;;
+        *)
+            TARGET_NAME="Universal"
+            ;;
+    esac
+else
+    TARGET_NAME=${TARGET}
+fi
+
+export RUST_LOG=trace
+export TEST_PROJECT_NAME=raft-kv-${PROJECT}
+
+echo "###### Testing ${TEST_PROJECT_NAME} with target ${TARGET_NAME} and ${CLIENTS_NUM} clients ######"
 echo "Killing all running raft-key-value"
 
-docker compose stop
+docker compose -f ${TEST_PROJECT_NAME}/docker-compose.yml -p ${TEST_PROJECT_NAME} stop
+# rm ./text-logs.txt
 rm -rf ./node-logs/*
 rm -rf ./tests/*
 
 sleep 1
 
-echo "Start 3 uninitialized raft-key-value servers with Snapshot Target as ${SNAPSHOT_TARGET}..."
-docker compose up -d
+echo "Start 3 uninitialized raft-key-value servers with Snapshot Target as ${TARGET}..."
+docker compose -f ${TEST_PROJECT_NAME}/docker-compose.yml -p ${TEST_PROJECT_NAME}  up -d
 sleep 20
 
 echo "Initialize server 1 as a single-node cluster"
@@ -62,15 +91,15 @@ rpc 21001/change-membership '[1, 2, 3]'
 echo 'Membership changed to [1, 2, 3]'
 sleep 3
 
-export JMETER_CONFIG_FILE=../jmeter-config-$2.jmx
+export JMETER_CONFIG_FILE=./jmeter-config-${CLIENTS_NUM}.jmx
 echo "Starting load test with ${JMETER_CONFIG_FILE} at"
 date
 jmeter -n -t ${JMETER_CONFIG_FILE} -l ./tests/test-result.txt -e -o ./tests/result
 
-export RESULTS_DIR=~/study/tcc/test-results/memstore-$1-$2
+export RESULTS_DIR=~/study/tcc/test-results/${PROJECT}-${TARGET_NAME}-${CLIENTS_NUM}
 mkdir -p ${RESULTS_DIR}
 cp ./node-logs/* ${RESULTS_DIR}
 cp -r ./tests/* ${RESULTS_DIR}
 
 echo "Finishing test..."
-docker compose stop
+docker compose -f ${TEST_PROJECT_NAME}/docker-compose.yml -p ${TEST_PROJECT_NAME} stop
