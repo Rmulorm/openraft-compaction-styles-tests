@@ -91,7 +91,12 @@ rpc 21001/change-membership '[1, 2, 3]'
 echo 'Membership changed to [1, 2, 3]'
 sleep 3
 
-export JMETER_CONFIG_FILE=./jmeter-config-${CLIENTS_NUM}.jmx
+export JMETER_CONFIG_FILE=./jmeter-config.jmx
+xmlstarlet ed \
+    -u "jmeterTestPlan/hashTree/hashTree/ThreadGroup/stringProp[@name='ThreadGroup.num_threads']" -v ${CLIENTS_NUM} \
+    -u "jmeterTestPlan/hashTree/hashTree/ThreadGroup/elementProp/stringProp" -v $((25000/${CLIENTS_NUM})) \
+    ./jmeter-config-base.jmx > ${JMETER_CONFIG_FILE}
+
 echo "Starting load test with ${JMETER_CONFIG_FILE} at"
 date
 jmeter -n -t ${JMETER_CONFIG_FILE} -l ./tests/test-result.txt -e -o ./tests/result
